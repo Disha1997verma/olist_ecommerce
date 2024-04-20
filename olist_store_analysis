@@ -1,0 +1,259 @@
+create database ecommerce_dataset;
+use ecommerce_dataset;
+
+create table Table_reviews_payements_dataset
+(
+review_id text,
+order_id text,
+review_score int,
+review_comment_title text,
+review_comment_message text,
+review_creation_date datetime,
+review_answer_timestamp datetime,
+payment_type text,
+payment_value text                                                  
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\Table_reviews_payements_dataset.csv' 
+into table Table_reviews_payements_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+
+SELECT * FROM Table_reviews_payements_dataset;
+
+create table olist_customers_dataset
+(
+customer_id text,
+customer_unique_id text,
+ccustomer_zip_code_prefix int,
+customer_city text,
+customer_state text
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_customers_dataset.csv' 
+into table olist_customers_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\n' ignore 1 rows;
+SELECT * FROM olist_customers_dataset; 
+----------------------------------------------------------------------------------------------------------------------------------
+create table olist_order_items_dataset
+(
+order_id text,
+order_iteam_id int,
+product_id text,
+seller_id text,
+shipping_limit_id datetime,
+price int,                         
+fright_vlaue int
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_order_items_dataset.csv' 
+into table olist_order_items_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\n' ignore 1 rows;
+SELECT * FROM olist_order_items_dataset;
+------------------------------------------------------------------------------------------------------------------------------------
+create table olist_order_payments_dataset
+(
+order_id text,
+payment_sequential int,
+payment_type text,
+payment_installments int,
+payment_value int
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_order_payments_dataset.csv' 
+into table olist_order_payments_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\n' ignore 1 rows;
+SELECT count(*) FROM olist_order_payments_dataset;
+----------------------------------------------------------------------------------------------------------------------------------- 
+create table olist_order_reviews_dataset
+(
+review_id text,
+order_id text,
+review_score int,
+review_comment_title text,
+review_comment_message text,
+review_creation_date datetime,
+review_answer_timestamp datetime
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_order_reviews_dataset.csv' 
+into table olist_order_reviews_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+SELECT * FROM olist_order_reviews_dataset;
+---------------------------------------------------------------------------------------------------------------------------------
+create table olist_orders_dataset
+(
+order_id VARCHAR(255),
+customer_id VARCHAR(255),
+order_status VARCHAR(255),
+order_purchase_timestamp datetime,
+order_approved_at text,
+order_delivered_carrier_date text,
+order_delivered_customer_date text, 
+order_estimated_deliverey_date datetime 
+);
+
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_orders_dataset.csv' 
+into table olist_orders_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+SELECT * FROM olist_orders_dataset;
+-------------------------------- Alter table-----------------------------
+Alter table olist_orders_dataset
+add column years YEAR,
+add column Weekday_Weekend text;
+
+ Update olist_orders_dataset
+ SET years = YEAR(order_purchase_timestamp);
+ 
+Update olist_orders_dataset 
+SET Weekday_Weekend = CASE
+							 WHEN DAYOFWEEK(order_purchase_timestamp) IN (1,7) THEN "WEEKEND" 
+							 ELSE "WEEKDAY"
+						 END;
+ SET no_days_taken_to_deliver = datediff(order_delivered_customer_date,order_purchase_timestamp);
+
+SELECT * from olist_orders_dataset; 
+---------------------------------------------------------------------------------------------------------------------------------
+create table olist_products_dataset
+(
+ product_id VARCHAR(255),
+ product_category_name VARCHAR(255),
+ product_name_lenght VARCHAR(255),
+ product_description_lenght VARCHAR(255),
+ product_photos_qty text,
+ product_weight_g VARCHAR(255),
+ product_length_cm VARCHAR(255),
+ product_height_cm VARCHAR(255),
+ product_width_cm VARCHAR(255) 
+);
+ load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_products_dataset.csv' 
+into table olist_products_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+SELECT * from olist_products_dataset;
+-----------------------------------------------------------------------------------------------------------------------------------
+create table olist_sellers_dataset
+(
+ seller_id VARCHAR(255),
+ seller_zip_code_prefix int,
+ seller_city VARCHAR(255),
+ seller_state VARCHAR(255)
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_sellers_dataset.csv' 
+into table olist_sellers_dataset 
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+SELECT * from olist_sellers_dataset;
+-------------------------------------------------------------------------------------------------------------------------------
+create table product_category_name_translation
+(
+﻿product_category_name text,
+product_category_name_english text
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\product_category_name_translation.csv' 
+into table product_category_name_translation
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+Select * from product_category_name_translation;
+-------------------------------------------------------------------------------------------------------------------------------  
+create table olist_geolocation_dataset
+( 
+geolocation_zip_code_prefix int,
+geolocation_lat double,
+geolocation_lng double,
+geolocation_city VARCHAR(255),
+geolocation_state VARCHAR(255)
+);
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\olist_geolocation_dataset.csv' 
+into table olist_geolocation_dataset
+fields terminated by ',' enclosed by '"' lines terminated by '\r\n' ignore 1 rows;
+Select count(*) from olist_order_payments_dataset;
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 1 -------------------------
+SELECT count(*),Weekday_Weekend,
+sum(case when years = 2016 then payment_value else 0 END) AS "2016",
+sum(case when years = 2017 then payment_value else 0 END) AS "2017",
+sum(case when years = 2018 then payment_value else 0 END) AS "2018", 
+sum(payment_value) as Total_payment 
+FROM olist_order_payments_dataset t1    
+LEFT JOIN olist_orders_dataset t2
+ON t1.order_id = t2.order_id 
+GROUP BY Weekday_Weekend;
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 2 -------------------------
+select count(review_id) as number_of_orders, review_score,payment_type
+FROM olist_order_reviews_dataset as t1
+inner join olist_order_payments_dataset as t2
+on t1.order_id = t2.order_id
+where review_score = 5 and payment_type = "credit_card";
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 3 -------------------------
+
+select avg(datediff(order_delivered_customer_date,order_purchase_timestamp)) as avg_days_taken_to_deliver
+from olist_order_items_dataset as t1
+inner join olist_orders_dataset as t2
+on t1.order_id = t2.order_id
+INNER join olist_products_dataset as t3
+on t3.product_id = t1.product_id
+WHERE product_category_name = 'pet_shop';
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 4 -------------------------
+
+select AVG(price) as avg_price, AVG(payment_value) as avg_payment
+FROM olist_orders_dataset as t1
+INNER JOIN olist_customers_dataset as t2
+on t1.customer_id = t2.customer_id
+Inner JOIN olist_order_payments_dataset as t3
+on t3.order_id = t1.order_id
+INNER JOIN olist_order_items_dataset as t4 
+on t4.order_id = t1.order_id
+WHERE customer_city = "sao paulo";
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 5 -------------------------
+SELECT review_score,avg(datediff(order_delivered_customer_date,order_purchase_timestamp)) as avg_days_taken_to_deliver
+from olist_orders_dataset as t1
+INNER JOIN olist_order_reviews_dataset as t2
+on t1.order_id = t2.order_id
+GROUP BY review_score
+ORDER BY review_score ASC;
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 6 -------------------------
+SELECT sum(payment_value) as Total_payment 
+FROM olist_order_payments_dataset;
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 7 -------------------------
+SELECT count(customer_id) as Total_customers 
+FROM olist_customers_dataset;
+
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 8 ------------------------- 
+
+select customer_city,sum(t3.payment_value) as Total_payment
+FROM olist_orders_dataset as t1
+INNER JOIN olist_customers_dataset as t2
+on t1.customer_id = t2.customer_id
+Inner JOIN olist_order_payments_dataset as t3
+on t3.order_id = t1.order_id
+INNER JOIN olist_order_payments_dataset as t4 
+on t4.order_id = t1.order_id
+GROUP BY customer_city 
+order by Total_payment DESC; 
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 9 ------------------------- 
+select product_category_name, count(order_id) as Total_sales
+FROM olist_products_dataset as t1
+INNER JOIN olist_order_items_dataset as t2
+on t1.product_id = t2.product_id
+GROUP BY product_category_name
+order by Total_sales DESC limit 5;
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 10 -------------------------
+select customer_state,avg(datediff(order_delivered_customer_date,order_purchase_timestamp)) as avg_days_taken_to_deliver
+from olist_customers_dataset as t1
+inner join olist_orders_dataset as t2
+on t1.customer_id = t2.customer_id
+GROUP BY customer_state
+order by avg_days_taken_to_deliver DESC;
+----------------------------------------------------------------------------------------------------------------------------------
+-------------------- KPI 11 -------------------------
+select review_score,sum(payment_value)
+from olist_order_reviews_dataset as t1
+LEFT JOIN olist_order_payments_dataset as t2
+on t1.order_id = t2.order_id
+group by review_score
+order by sum(payment_value) DESC; 
